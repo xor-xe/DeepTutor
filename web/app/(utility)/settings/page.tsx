@@ -22,7 +22,7 @@ import {
 } from "lucide-react";
 
 import { writeStoredLanguage } from "@/context/AppShellContext";
-import { apiUrl } from "@/lib/api";
+import { apiUrl, apiFetch } from "@/lib/api";
 import { setTheme as applyThemePreference } from "@/lib/theme";
 
 type ServiceName = "llm" | "embedding" | "search";
@@ -439,7 +439,7 @@ function SettingsPageContent() {
   useEffect(() => {
     const load = async () => {
       try {
-        const settingsResponse = await fetch(apiUrl("/api/v1/settings"));
+        const settingsResponse = await apiFetch(apiUrl("/api/v1/settings"));
         if (!settingsResponse.ok)
           throw new Error(`Settings fetch failed: ${settingsResponse.status}`);
         const settingsPayload =
@@ -457,7 +457,7 @@ function SettingsPageContent() {
       }
 
       try {
-        const statusResponse = await fetch(apiUrl("/api/v1/system/status"));
+        const statusResponse = await apiFetch(apiUrl("/api/v1/system/status"));
         if (!statusResponse.ok)
           throw new Error(`Status fetch failed: ${statusResponse.status}`);
         const statusPayload = (await statusResponse.json()) as SystemStatus;
@@ -535,7 +535,7 @@ function SettingsPageContent() {
     nextTheme: "light" | "dark",
     nextLanguage: "en" | "zh",
   ) => {
-    await fetch(apiUrl("/api/v1/settings/ui"), {
+    await apiFetch(apiUrl("/api/v1/settings/ui"), {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ theme: nextTheme, language: nextLanguage }),
@@ -666,7 +666,7 @@ function SettingsPageContent() {
   const saveCatalog = async () => {
     setSaving(true);
     try {
-      const response = await fetch(apiUrl("/api/v1/settings/catalog"), {
+      const response = await apiFetch(apiUrl("/api/v1/settings/catalog"), {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ catalog: draft }),
@@ -683,7 +683,7 @@ function SettingsPageContent() {
   const applyCatalog = async () => {
     setApplying(true);
     try {
-      const response = await fetch(apiUrl("/api/v1/settings/apply"), {
+      const response = await apiFetch(apiUrl("/api/v1/settings/apply"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ catalog: draft }),
@@ -692,7 +692,7 @@ function SettingsPageContent() {
       setCatalog(payload.catalog);
       setDraft(cloneCatalog(payload.catalog));
       setToast("Applied to .env");
-      const statusResponse = await fetch(apiUrl("/api/v1/system/status"));
+      const statusResponse = await apiFetch(apiUrl("/api/v1/system/status"));
       setStatus((await statusResponse.json()) as SystemStatus);
     } finally {
       setApplying(false);
@@ -825,7 +825,7 @@ function SettingsPageContent() {
     setTourTestResults({ ...results });
 
     // Apply catalog first so backend picks up config
-    await fetch(apiUrl("/api/v1/settings/apply"), {
+    await apiFetch(apiUrl("/api/v1/settings/apply"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ catalog: draft }),
@@ -858,11 +858,17 @@ function SettingsPageContent() {
   const confirmTourComplete = async () => {
     setTourTestPhase("idle");
     try {
-      const response = await fetch(apiUrl("/api/v1/settings/tour/complete"), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ catalog: draft, test_results: tourTestResults }),
-      });
+      const response = await apiFetch(
+        apiUrl("/api/v1/settings/tour/complete"),
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            catalog: draft,
+            test_results: tourTestResults,
+          }),
+        },
+      );
       if (response.ok) {
         const payload = (await response.json()) as TourCompleteResponse;
         setTourCompleted(true);
@@ -884,7 +890,7 @@ function SettingsPageContent() {
   // -- Reopen tour --------------------------------------------------------
 
   const reopenTour = async () => {
-    const response = await fetch(apiUrl("/api/v1/settings/tour/reopen"), {
+    const response = await apiFetch(apiUrl("/api/v1/settings/tour/reopen"), {
       method: "POST",
     });
     const payload = (await response.json()) as {
