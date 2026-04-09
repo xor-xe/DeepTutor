@@ -4,10 +4,10 @@ Unified session history API.
 
 from __future__ import annotations
 
-from pydantic import BaseModel, Field
 from fastapi import APIRouter, HTTPException, Query
+from pydantic import BaseModel, Field
 
-from deeptutor.services.session import get_sqlite_session_store
+from deeptutor.services.session import get_session_store
 
 router = APIRouter()
 
@@ -51,14 +51,14 @@ async def list_sessions(
     limit: int = Query(default=50, ge=1, le=200),
     offset: int = Query(default=0, ge=0),
 ):
-    store = get_sqlite_session_store()
+    store = get_session_store()
     sessions = await store.list_sessions(limit=limit, offset=offset)
     return {"sessions": sessions}
 
 
 @router.get("/{session_id}")
 async def get_session(session_id: str):
-    store = get_sqlite_session_store()
+    store = get_session_store()
     session = await store.get_session_with_messages(session_id)
     if session is None:
         raise HTTPException(status_code=404, detail="Session not found")
@@ -67,7 +67,7 @@ async def get_session(session_id: str):
 
 @router.patch("/{session_id}")
 async def rename_session(session_id: str, payload: SessionRenameRequest):
-    store = get_sqlite_session_store()
+    store = get_session_store()
     updated = await store.update_session_title(session_id, payload.title)
     if not updated:
         raise HTTPException(status_code=404, detail="Session not found")
@@ -77,7 +77,7 @@ async def rename_session(session_id: str, payload: SessionRenameRequest):
 
 @router.delete("/{session_id}")
 async def delete_session(session_id: str):
-    store = get_sqlite_session_store()
+    store = get_session_store()
     deleted = await store.delete_session(session_id)
     if not deleted:
         raise HTTPException(status_code=404, detail="Session not found")
@@ -88,7 +88,7 @@ async def delete_session(session_id: str):
 async def record_quiz_results(session_id: str, payload: QuizResultsRequest):
     if not payload.answers:
         raise HTTPException(status_code=400, detail="Quiz results are required")
-    store = get_sqlite_session_store()
+    store = get_session_store()
     session = await store.get_session(session_id)
     if session is None:
         raise HTTPException(status_code=404, detail="Session not found")
