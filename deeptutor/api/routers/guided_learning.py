@@ -89,7 +89,6 @@ async def list_all_progress():
 @router.get("/progress/{book_id}")
 async def get_progress(book_id: str):
     if not book_id or ".." in book_id or "/" in book_id or "\\" in book_id or ":" in book_id:
-        from fastapi import HTTPException
         raise HTTPException(status_code=400, detail="Invalid book_id")
     service = get_learning_service()
     progress = service.get_or_create(book_id)
@@ -99,7 +98,6 @@ async def get_progress(book_id: str):
 @router.post("/progress/{book_id}/answer")
 async def submit_answer(book_id: str, body: AnswerRequest):
     if not book_id or ".." in book_id or "/" in book_id or "\\" in book_id or ":" in book_id:
-        from fastapi import HTTPException
         raise HTTPException(status_code=400, detail="Invalid book_id")
     service = get_learning_service()
     scheduler = get_scheduler()
@@ -154,7 +152,6 @@ async def submit_answer(book_id: str, body: AnswerRequest):
 @router.get("/progress/{book_id}/reviews")
 async def get_reviews(book_id: str):
     if not book_id or ".." in book_id or "/" in book_id or "\\" in book_id or ":" in book_id:
-        from fastapi import HTTPException
         raise HTTPException(status_code=400, detail="Invalid book_id")
     service = get_learning_service()
     scheduler = get_scheduler()
@@ -167,7 +164,6 @@ async def get_reviews(book_id: str):
 @router.post("/progress/{book_id}/init-modules")
 async def init_modules(book_id: str, body: InitModulesRequest):
     if not book_id or ".." in book_id or "/" in book_id or "\\" in book_id or ":" in book_id:
-        from fastapi import HTTPException
         raise HTTPException(status_code=400, detail="Invalid book_id")
     service = get_learning_service()
     progress = service.get_or_create(book_id)

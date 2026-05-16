@@ -101,3 +101,22 @@ class TestPathTraversal:
     def test_rejects_in_save(self, store):
         with pytest.raises(ValueError, match="Invalid book_id"):
             store.save(LearningProgress(book_id="../evil"))
+
+
+# ── list_all ──────────────────────────────────────────────────────────────
+
+class TestListAll:
+    def test_list_all_empty(self, store):
+        assert store.list_all() == []
+
+    def test_list_all_multiple(self, store):
+        store.save(LearningProgress(book_id="a"))
+        store.save(LearningProgress(book_id="b"))
+        ids = store.list_all()
+        assert sorted(ids) == ["a", "b"]
+
+    def test_list_all_after_delete(self, store):
+        store.save(LearningProgress(book_id="x"))
+        store.save(LearningProgress(book_id="y"))
+        store.delete("x")
+        assert store.list_all() == ["y"]
