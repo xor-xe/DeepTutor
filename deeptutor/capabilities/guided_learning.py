@@ -9,6 +9,7 @@ from typing import Any
 from deeptutor.core.capability_protocol import BaseCapability, CapabilityManifest
 from deeptutor.core.context import UnifiedContext
 from deeptutor.core.stream_bus import StreamBus
+from deeptutor.learning.grading import grade_answer
 from deeptutor.learning.models import (
     DiagnosticResult,
     ErrorType,
@@ -250,7 +251,7 @@ class GuidedLearningCapability(BaseCapability):
                 user_answer = await stream.wait_for_input("请回答", source=self.manifest.name, timeout=120)
                 stored = self._store.load_question_answers(book_id)
                 expected = stored.get(qid, "")
-                is_correct = bool(expected) and user_answer.strip().lower() == expected.strip().lower()
+                is_correct = bool(expected) and grade_answer(user_answer, expected)
                 if is_correct:
                     correct_count += 1
                 self._service.record_quiz_attempt(
@@ -295,7 +296,7 @@ class GuidedLearningCapability(BaseCapability):
                 user_answer = await stream.wait_for_input("请回答", source=self.manifest.name, timeout=120)
                 stored = self._store.load_question_answers(book_id)
                 expected = stored.get(qid, "")
-                is_correct = bool(expected) and user_answer.strip().lower() == expected.strip().lower()
+                is_correct = bool(expected) and grade_answer(user_answer, expected)
                 if is_correct:
                     correct_count += 1
                 self._service.record_quiz_attempt(
@@ -476,7 +477,7 @@ class GuidedLearningCapability(BaseCapability):
                 user_answer = await stream.wait_for_input("请回答", source=self.manifest.name, timeout=120)
                 stored = self._store.load_question_answers(book_id)
                 expected = stored.get(qid, "")
-                is_correct = bool(expected) and user_answer.strip().lower() == expected.strip().lower()
+                is_correct = bool(expected) and grade_answer(user_answer, expected)
                 if is_correct:
                     correct_count += 1
                 self._service.record_quiz_attempt(
@@ -533,7 +534,7 @@ class GuidedLearningCapability(BaseCapability):
                 user_answer = await stream.wait_for_input("请回答", source=self.manifest.name, timeout=120)
                 stored = self._store.load_question_answers(book_id)
                 expected = stored.get(qid, "")
-                is_correct = bool(expected) and user_answer.strip().lower() == expected.strip().lower()
+                is_correct = bool(expected) and grade_answer(user_answer, expected)
                 self._service.record_quiz_attempt(
                     progress,
                     QuizAttempt(

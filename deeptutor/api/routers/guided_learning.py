@@ -6,6 +6,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from pydantic import ValidationError as PydanticValidationError
 
+from deeptutor.learning.grading import grade_answer
 from deeptutor.learning.models import (
     ErrorType,
     KnowledgePoint,
@@ -20,18 +21,9 @@ from deeptutor.learning.storage import LearningStore
 router = APIRouter()
 
 
-def _grade_answer(user_answer: str, expected_answer: str) -> bool:
-    """Simple comparison. For short answers, do fuzzy match."""
-    if not expected_answer:
-        return False
-    user = user_answer.strip().lower()
-    expected = expected_answer.strip().lower()
-    if user == expected:
-        return True
-    # Allow substring match for long expected answers
-    if len(expected) > 10 and expected in user:
-        return True
-    return False
+def _grade_answer(user_answer: str, expected_answer: str, question_type: str = "short") -> bool:
+    """Delegate to unified grading function."""
+    return grade_answer(user_answer, expected_answer, question_type)
 
 
 def _classify_error(user_answer: str, expected_answer: str) -> ErrorType | None:
