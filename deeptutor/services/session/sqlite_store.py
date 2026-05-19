@@ -5,6 +5,8 @@ SQLite-backed unified chat session store.
 from __future__ import annotations
 
 import asyncio
+from collections.abc import Iterator
+from contextlib import contextmanager
 from dataclasses import dataclass
 import json
 import os
@@ -257,11 +259,20 @@ class SQLiteSessionStore:
         async with self._lock:
             return await asyncio.to_thread(fn, *args)
 
-    def _connect(self) -> sqlite3.Connection:
+    @contextmanager
+    def _connect(self) -> Iterator[sqlite3.Connection]:
+        # sqlite3.Connection's own context manager commits/rolls back but does
+        # NOT close the connection — so naked `with sqlite3.connect(...)` leaks
+        # one FD per call until GC. Wrap it so each call site gets both
+        # transaction semantics and deterministic close.
         conn = sqlite3.connect(self.db_path)
         conn.row_factory = sqlite3.Row
         conn.execute("PRAGMA foreign_keys = ON")
-        return conn
+        try:
+            with conn:
+                yield conn
+        finally:
+            conn.close()
 
     def _create_session_sync(
         self,
